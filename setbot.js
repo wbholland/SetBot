@@ -21,11 +21,8 @@ function initialize() {
 			document.getElementsByClassName("MuiPaper-root")[3].
 			children
 			).
-		find(el =>
-			el.attributes.style.value.includes("visible")
-		).
-		firstChild.
-		className;
+		find(el => el.attributes.style.value.includes("visible")).
+		firstChild.className;
 }
 
 function findSet() {
