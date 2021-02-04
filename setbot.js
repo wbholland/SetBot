@@ -1,7 +1,6 @@
 const shapes = ["oval","diamond","squiggle"];
 const fills = ["transparent","stripe","fill=\"#"];
-const colors = ["ff47ff","00b803","ffb047"];
-
+var colors = [];
 var cardClass;
 
 document.addEventListener("keydown", event => {
@@ -16,6 +15,14 @@ document.addEventListener("keydown", event => {
 	}
 });
 
+function setColors() {
+	document.getElementsByClassName("MuiListItem-root")[2].click()
+	for(colorDisplay of document.getElementsByClassName("MuiDialogContent-root")[0].firstChild.children) {
+		colors.push(colorDisplay.firstChild.firstChild.firstChild.getAttribute("fill"));
+	}
+	document.activeElement.firstChild.dispatchEvent(new KeyboardEvent('keydown',{key: 'Escape', bubbles:true}))
+}
+
 function initialize() {
 	cardClass = Array.from(
 			document.getElementsByClassName("MuiPaper-root")[3].
@@ -23,6 +30,12 @@ function initialize() {
 			).
 		find(el => el.attributes.style.value.includes("visible")).
 		firstChild.className;
+
+	setColors();
+}
+
+function findUltraSet(){
+
 }
 
 function findSet() {
