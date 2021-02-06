@@ -1,16 +1,23 @@
 const shapes = ["oval","diamond","squiggle"];
 const fills = ["transparent","stripe","fill=\"#"];
 var colors = [];
+var attributes = [shapes, fills, colors];
+
 var cardClass;
+var stringToEl;
 
 document.addEventListener("keydown", event => {
-	switch (event.keyCode) {
-		case 73: // i
+	switch (event.key) {
+		case "i":
 		initialize();
 		break;
 
-		case 32: //space
+		case "j":
 		findSet();
+		break;
+
+		case "k":
+		findUltraSet();
 		break;
 	}
 });
@@ -20,7 +27,7 @@ function setColors() {
 	for(colorDisplay of document.getElementsByClassName("MuiDialogContent-root")[0].firstChild.children) {
 		colors.push(colorDisplay.firstChild.firstChild.firstChild.getAttribute("fill"));
 	}
-	document.activeElement.firstChild.dispatchEvent(new KeyboardEvent('keydown',{key: 'Escape', bubbles:true}))
+	document.activeElement.firstChild.dispatchEvent(new KeyboardEvent('keydown',{key: 'Escape', bubbles:true}));
 }
 
 function initialize() {
@@ -34,81 +41,74 @@ function initialize() {
 	setColors();
 }
 
-function findUltraSet(){
-
-}
-
-function findSet() {
+function readCards(cardEls) {
 	cardEls = document.getElementsByClassName(cardClass);
 	cards = [];
+	this.stringToEl = new Map();
 	for (cardEl of cardEls) {
-		let card = {};
+		let card = "";
 		let mark = cardEl.firstChild.innerHTML;
 
-		card.el = cardEl;
-		card.num = cardEl.childElementCount;
+		card += cardEl.childElementCount % 3;
 
-		for (shape of shapes) {
-			if (mark.includes(shape)) {
-				card.shape = shape;
-				break;
-			}
-		}
-		for (fill of fills) {
-			if (mark.includes(fill)) {
-				card.fill = fill;
-				break;
-			}
-		}
-		for (color of colors) {
-			if (mark.includes(color)) {
-				card.color = color;
-				break;
-			}
-		}
-
-		cards.push(card)
-	}
-	
-	for(let i = 0; i < cards.length; i++){
-		for(let j = i+1; j < cards.length; j++){
-			for(let k = j+1; k < cards.length; k++){
-				if(isSetValid(cards[i], cards[j], cards[k])){
-					cards[i].el.click();
-					cards[j].el.click();
-					cards[k].el.click();
-					i = cards.length;
-					j = cards.length;
-					k = cards.length;
+		for(att of attributes) {
+			for (let i = 0; i < attributes.length; i++) {
+				if (mark.includes(att[i])) {
+					card += i;
+					break;
 				}
 			}
 		}
+
+		stringToEl.set(card, cardEl);
+
+		cards.push(card);
+	}
+
+	return cards;
+}
+
+function conjugate(a, b) {
+	let c = "";
+	for(let i = 0; i < 4; i++) {
+		c += (3- ((parseInt(a[i]) + parseInt(b[i])) % 3)) %3;
+	}
+	return c;
+}
+
+function findUltraSet() {
+	let cards = readCards();
+	let conjugateToPair = new Map();
+	for(let i = 0; i < cards.length; i++){
+		for(let j = i+1; j < cards.length; j++){
+			let fifth = conjugate(cards[i], cards[j]);
+			if(conjugateToPair.has(fifth)) {
+				clickSet([...conjugateToPair.get(fifth), cards[i], cards[j]]);
+				return;
+			}
+			conjugateToPair.set(fifth, [cards[i], cards[j]]);
+		}
 	}
 }
 
+function findSet() {
+	let count = 0;
+	let cards = readCards();
 
-function isSetValid(c1, c2, c3) {
-	if(	(!allEqual(c1.num, c2.num, c3.num) &&
-			!allDifferent(c1.num, c2.num, c3.num)) ||
-
-		(!allEqual(c1.shape, c2.shape, c3.shape) &&
-			!allDifferent(c1.shape, c2.shape, c3.shape)) ||
-
-		(!allEqual(c1.fill, c2.fill, c3.fill) &&
-			!allDifferent(c1.fill, c2.fill, c3.fill)) ||
-	
-		(!allEqual(c1.color, c2.color, c3.color) &&
-			!allDifferent(c1.color, c2.color, c3.color))
-		
-	) return false;
-
-	return true;
+	for(let i = 0; i < cards.length; i++){
+		for(let j = i+1; j < cards.length; j++){
+			let third = conjugate(cards[i], cards[j]);
+			count++;
+			if(cards.includes(third)) {
+				clickSet([third, cards[i], cards[j]]);
+				return;
+			}
+		}
+	}
 }
 
-function allEqual(a, b, c) {
-	return a == b && b == c;
-}
-
-function allDifferent(a, b, c) {
-	return a != b && b != c && a != c;
+function clickSet(l) {
+	for(card of l) {
+		stringToEl.get(card).click();
+	}
 }
