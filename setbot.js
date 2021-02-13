@@ -41,27 +41,44 @@ function initialize() {
 	setColors();
 }
 
-function readCards(cardEls) {
-	cardEls = document.getElementsByClassName(cardClass);
-	cards = [];
-	this.stringToEl = new Map();
-	for (cardEl of cardEls) {
-		let card = "";
-		let mark = cardEl.firstChild.innerHTML;
+function parseCard(cardEl) {
+	let card = "";
+	let mark = cardEl.firstChild.innerHTML;
 
-		card += cardEl.childElementCount % 3;
+	card += cardEl.childElementCount % 3;
 
-		for(att of attributes) {
-			for (let i = 0; i < attributes.length; i++) {
-				if (mark.includes(att[i])) {
-					card += i;
-					break;
-				}
+	for(att of attributes) {
+		for (let i = 0; i < att.length; i++) {
+			if (mark.includes(att[i])) {
+				card += i;
+				break;
 			}
 		}
+	}
 
+	return card;
+}
+
+function chainCards() {
+	let chainCards = [];
+	let barRect = document.getElementsByClassName("MuiDivider-root MuiDivider-absolute")[0].getBoundingClientRect();
+	let unit = barRect.width/6;
+	for(let i = 0; i < 3; i++) {
+		let targetEl = document.elementFromPoint(barRect.x + (1+ i*2)*unit, barRect.y - unit);
+		while(targetEl.className != cardClass) {
+			targetEl = targetEl.parentElement;
+		}
+		chainCards.push(parseCard(targetEl));
+	}
+	return chainCards;
+}
+
+function readCards() {
+	let cards = [];
+	this.stringToEl = new Map();
+	for (cardEl of document.getElementsByClassName(cardClass)) {
+		let card = parseCard(cardEl);
 		stringToEl.set(card, cardEl);
-
 		cards.push(card);
 	}
 
@@ -92,19 +109,32 @@ function findUltraSet() {
 }
 
 function findSet() {
-	let count = 0;
 	let cards = readCards();
+	let isChain = document.getElementsByClassName("MuiDivider-root MuiDivider-absolute").length;
 
 	for(let i = 0; i < cards.length; i++){
 		for(let j = i+1; j < cards.length; j++){
 			let third = conjugate(cards[i], cards[j]);
-			count++;
 			if(cards.includes(third)) {
-				clickSet([third, cards[i], cards[j]]);
+				let set = [third, cards[i], cards[j]];
+				if(isChain && listOverlap(set, chainCards()) != 1) {
+					continue;
+				}
+				clickSet(set);
 				return;
 			}
 		}
 	}
+}
+
+function listOverlap(a, b) {
+	let overlap = 0;
+	for(card of a) {
+		if (b.includes(card)) {
+			overlap++;
+		}
+	}
+	return overlap;
 }
 
 function clickSet(l) {
