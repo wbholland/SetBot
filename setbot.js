@@ -23,7 +23,7 @@ document.addEventListener("keydown", event => {
 });
 
 function setColors() {
-	document.getElementsByClassName("MuiListItem-root")[2].click()
+	document.getElementsByClassName("MuiListItem-root")[3].click()
 	for(colorDisplay of document.getElementsByClassName("MuiDialogContent-root")[0].firstChild.children) {
 		colors.push(colorDisplay.firstChild.firstChild.firstChild.getAttribute("fill"));
 	}
